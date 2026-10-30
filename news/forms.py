@@ -1,3 +1,8 @@
+"""Forms used by the News application's HTML views.
+
+Covers registration, login, and creating or editing articles,
+newsletters and publishers.
+"""
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, Article, Newsletter, Publisher
@@ -50,6 +55,12 @@ class NewsletterForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Create the form and limit the article choices to approved
+        articles only.
+
+        :param args: Positional arguments passed to ``ModelForm``
+        :param kwargs: Keyword arguments passed to ``ModelForm``
+        """
         super().__init__(*args, **kwargs)
         self.fields['articles'].queryset = Article.objects.filter(approved=True)
 

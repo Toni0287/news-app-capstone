@@ -1,3 +1,9 @@
+"""HTML views for the News application.
+
+Handles registration and login, the article workflow (create, edit,
+approve, delete), reader subscriptions, publishers and newsletters.
+Access is restricted by the user's role: reader, journalist or editor.
+"""
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -180,7 +186,13 @@ def my_articles(request):
 
 
 def _notify_subscribers(article):
-    """Email all readers subscribed to the article's journalist or publisher on approval."""
+    """Email all readers subscribed to the article's journalist or publisher on approval.
+
+    Email errors are printed and do not stop the approval.
+
+    :param article: The article that has just been approved
+    :type article: :class:`news.models.Article`
+    """
     subscriber_qs = CustomUser.objects.none()
     subscriber_qs = subscriber_qs | CustomUser.objects.filter(
         subscribed_journalists=article.author
