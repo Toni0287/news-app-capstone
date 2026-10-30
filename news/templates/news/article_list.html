@@ -1,0 +1,28 @@
+{% extends 'news/base.html' %}
+{% block title %}Articles – NewsApp{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Latest Articles</h2>
+  {% if user.role == 'journalist' %}
+    <a href="{% url 'article_create' %}" class="btn">+ Write Article</a>
+  {% endif %}
+</div>
+
+{% if articles %}
+  <div class="article-grid">
+    {% for article in articles %}
+      <div class="article-card">
+        <h3><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></h3>
+        <p class="meta">
+          By {{ article.author.username }}
+          {% if article.publisher %} · {{ article.publisher.name }}{% endif %}
+          · {{ article.created_at|date:"d M Y" }}
+        </p>
+        <p class="excerpt">{{ article.content|truncatewords:30 }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="empty">No approved articles yet.</p>
+{% endif %}
+{% endblock %}

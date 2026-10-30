@@ -1,0 +1,30 @@
+{% extends 'news/base.html' %}
+{% block title %}{{ newsletter.title }} – NewsApp{% endblock %}
+{% block content %}
+<div class="newsletter-detail">
+  <h1>{{ newsletter.title }}</h1>
+  <p class="meta">By {{ newsletter.author.username }} · {{ newsletter.created_at|date:"d M Y" }}</p>
+  {% if newsletter.description %}<p>{{ newsletter.description }}</p>{% endif %}
+
+  <h3>Articles in this Newsletter</h3>
+  {% if newsletter.articles.all %}
+    <ul class="article-links">
+      {% for article in newsletter.articles.all %}
+        <li><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a>
+          <span class="meta"> – {{ article.author.username }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">No articles in this newsletter.</p>
+  {% endif %}
+
+  <div class="actions">
+    <a href="{% url 'newsletter_list' %}" class="btn">Back</a>
+    {% if user.role == 'editor' or user == newsletter.author %}
+      <a href="{% url 'newsletter_edit' newsletter.pk %}" class="btn">Edit</a>
+      <a href="{% url 'newsletter_delete' newsletter.pk %}" class="btn danger">Delete</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

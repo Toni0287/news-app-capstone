@@ -1,0 +1,24 @@
+{% extends 'news/base.html' %}
+{% block title %}Register – NewsApp{% endblock %}
+{% block content %}
+<div class="auth-card">
+  <h2>Create Account</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="error">{{ field.errors|striptags }}</p>
+        {% endif %}
+        {% if field.help_text %}
+          <p class="help">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn">Register</button>
+  </form>
+  <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</div>
+{% endblock %}

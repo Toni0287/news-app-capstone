@@ -1,0 +1,34 @@
+{% extends 'news/base.html' %}
+{% block title %}My Articles – NewsApp{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>My Articles</h2>
+  <a href="{% url 'article_create' %}" class="btn">+ Write Article</a>
+</div>
+
+{% if articles %}
+  <div class="article-grid">
+    {% for article in articles %}
+      <div class="article-card {% if not article.approved %}pending{% endif %}">
+        <h3><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></h3>
+        <p class="meta">
+          {% if article.publisher %} {{ article.publisher.name }} · {% endif %}
+          {{ article.created_at|date:"d M Y" }}
+          {% if article.approved %}
+            <span class="badge" style="background:#d4edda;color:#155724;">Published</span>
+          {% else %}
+            <span class="badge pending">Pending Approval</span>
+          {% endif %}
+        </p>
+        <p class="excerpt">{{ article.content|truncatewords:25 }}</p>
+        <div class="actions">
+          <a href="{% url 'article_edit' article.pk %}" class="btn">Edit</a>
+          <a href="{% url 'article_delete' article.pk %}" class="btn danger">Delete</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="empty">You have not written any articles yet.</p>
+{% endif %}
+{% endblock %}

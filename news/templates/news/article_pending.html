@@ -1,0 +1,27 @@
+{% extends 'news/base.html' %}
+{% block title %}Pending Approval – NewsApp{% endblock %}
+{% block content %}
+<h2>Articles Pending Approval</h2>
+{% if articles %}
+  <div class="article-grid">
+    {% for article in articles %}
+      <div class="article-card pending">
+        <h3><a href="{% url 'article_detail' article.pk %}">{{ article.title }}</a></h3>
+        <p class="meta">
+          By {{ article.author.username }}
+          {% if article.publisher %} · {{ article.publisher.name }}{% endif %}
+          · {{ article.created_at|date:"d M Y" }}
+        </p>
+        <p class="excerpt">{{ article.content|truncatewords:20 }}</p>
+        <div class="actions">
+          <a href="{% url 'article_approve' article.pk %}" class="btn success">Approve</a>
+          <a href="{% url 'article_edit' article.pk %}" class="btn">Edit</a>
+          <a href="{% url 'article_delete' article.pk %}" class="btn danger">Reject</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="empty">No articles awaiting approval.</p>
+{% endif %}
+{% endblock %}

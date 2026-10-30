@@ -1,0 +1,19 @@
+{% extends 'news/base.html' %}
+{% block title %}Approve Article – NewsApp{% endblock %}
+{% block content %}
+<div class="form-card">
+  <h2>Approve Article</h2>
+  <p>Are you sure you want to approve <strong>"{{ article.title }}"</strong>?</p>
+  <p>Subscribers of <em>{{ article.author.username }}</em>
+    {% if article.publisher %}and <em>{{ article.publisher.name }}</em>{% endif %}
+    will be notified by email.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-actions">
+      <button type="submit" class="btn success">Approve & Notify</button>
+      <a href="{% url 'article_pending' %}" class="btn secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'news/base.html' %}
+{% block title %}My Subscriptions – NewsApp{% endblock %}
+{% block content %}
+<h2>My Subscriptions</h2>
+
+<section style="margin-bottom:2rem;">
+  <h3>Journalists</h3>
+  {% if journalists %}
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="text-align:left;padding:0.5rem;">Journalist</th>
+          <th style="text-align:left;padding:0.5rem;">Status</th>
+          <th style="padding:0.5rem;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for journalist in journalists %}
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:0.5rem;">{{ journalist.username }}</td>
+            <td style="padding:0.5rem;">
+              {% if journalist in user.subscribed_journalists.all %}
+                <span class="badge" style="background:#d4edda;color:#155724;">Subscribed</span>
+              {% else %}
+                <span class="badge" style="background:#f8d7da;color:#721c24;">Not subscribed</span>
+              {% endif %}
+            </td>
+            <td style="padding:0.5rem;">
+              <form method="post" action="{% url 'toggle_journalist_subscription' journalist.pk %}">
+                {% csrf_token %}
+                {% if journalist in user.subscribed_journalists.all %}
+                  <button type="submit" class="btn danger" style="padding:0.3rem 0.8rem;">Unsubscribe</button>
+                {% else %}
+                  <button type="submit" class="btn success" style="padding:0.3rem 0.8rem;">Subscribe</button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No journalists registered yet.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h3>Publishers</h3>
+  {% if publishers %}
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="text-align:left;padding:0.5rem;">Publisher</th>
+          <th style="text-align:left;padding:0.5rem;">Status</th>
+          <th style="padding:0.5rem;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for publisher in publishers %}
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:0.5rem;">{{ publisher.name }}</td>
+            <td style="padding:0.5rem;">
+              {% if publisher in user.subscribed_publishers.all %}
+                <span class="badge" style="background:#d4edda;color:#155724;">Subscribed</span>
+              {% else %}
+                <span class="badge" style="background:#f8d7da;color:#721c24;">Not subscribed</span>
+              {% endif %}
+            </td>
+            <td style="padding:0.5rem;">
+              <form method="post" action="{% url 'toggle_publisher_subscription' publisher.pk %}">
+                {% csrf_token %}
+                {% if publisher in user.subscribed_publishers.all %}
+                  <button type="submit" class="btn danger" style="padding:0.3rem 0.8rem;">Unsubscribe</button>
+                {% else %}
+                  <button type="submit" class="btn success" style="padding:0.3rem 0.8rem;">Subscribe</button>
+                {% endif %}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">No publishers registered yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

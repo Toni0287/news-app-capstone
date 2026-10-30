@@ -1,0 +1,24 @@
+{% extends 'news/base.html' %}
+{% block title %}{{ article.title }} – NewsApp{% endblock %}
+{% block content %}
+<article class="article-detail">
+  <h1>{{ article.title }}</h1>
+  <p class="meta">
+    By <strong>{{ article.author.username }}</strong>
+    {% if article.publisher %} · <em>{{ article.publisher.name }}</em>{% endif %}
+    · {{ article.created_at|date:"d M Y H:i" }}
+    {% if not article.approved %}<span class="badge pending">Pending Approval</span>{% endif %}
+  </p>
+  <div class="article-content">{{ article.content|linebreaks }}</div>
+  <div class="actions">
+    <a href="{% url 'article_list' %}" class="btn">Back</a>
+    {% if user.role == 'editor' or user == article.author %}
+      <a href="{% url 'article_edit' article.pk %}" class="btn">Edit</a>
+      <a href="{% url 'article_delete' article.pk %}" class="btn danger">Delete</a>
+    {% endif %}
+    {% if user.role == 'editor' and not article.approved %}
+      <a href="{% url 'article_approve' article.pk %}" class="btn success">Approve</a>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}

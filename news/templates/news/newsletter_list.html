@@ -1,0 +1,24 @@
+{% extends 'news/base.html' %}
+{% block title %}Newsletters – NewsApp{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Newsletters</h2>
+  {% if user.role in 'journalist editor' %}
+    <a href="{% url 'newsletter_create' %}" class="btn">+ New Newsletter</a>
+  {% endif %}
+</div>
+{% if newsletters %}
+  <div class="article-grid">
+    {% for nl in newsletters %}
+      <div class="article-card">
+        <h3><a href="{% url 'newsletter_detail' nl.pk %}">{{ nl.title }}</a></h3>
+        <p class="meta">By {{ nl.author.username }} · {{ nl.created_at|date:"d M Y" }}</p>
+        {% if nl.description %}<p class="excerpt">{{ nl.description|truncatewords:25 }}</p>{% endif %}
+        <p class="meta">{{ nl.articles.count }} article(s)</p>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="empty">No newsletters yet.</p>
+{% endif %}
+{% endblock %}
