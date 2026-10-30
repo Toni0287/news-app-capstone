@@ -1,3 +1,8 @@
+"""REST API views for the News application.
+
+Clients authenticate with a token from :func:`api_token` and can then
+list, create, update, delete and approve articles, and list newsletters.
+"""
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -10,10 +15,24 @@ from .serializers import ArticleSerializer, ArticleCreateSerializer, NewsletterS
 
 
 def _is_journalist(user):
+    """Check whether a user is a logged-in journalist.
+
+    :param user: The user making the request
+    :type user: :class:`news.models.CustomUser`
+    :return: True if the user is authenticated and has the journalist role
+    :rtype: bool
+    """
     return user.is_authenticated and user.role == 'journalist'
 
 
 def _is_editor(user):
+    """Check whether a user is a logged-in editor.
+
+    :param user: The user making the request
+    :type user: :class:`news.models.CustomUser`
+    :return: True if the user is authenticated and has the editor role
+    :rtype: bool
+    """
     return user.is_authenticated and user.role == 'editor'
 
 
@@ -152,6 +171,13 @@ def api_article_approve(request, pk):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_newsletter_list(request):
+    """Return all newsletters with their authors and articles.
+
+    :param request: The authenticated API request
+    :type request: :class:`rest_framework.request.Request`
+    :return: A JSON list of serialized newsletters
+    :rtype: :class:`rest_framework.response.Response`
+    """
     newsletters = Newsletter.objects.select_related('author').prefetch_related('articles')
     serializer = NewsletterSerializer(newsletters, many=True)
     return Response(serializer.data)
