@@ -6,112 +6,228 @@ A Django news platform with three kinds of user:
 - **Editors** review and approve articles before readers can see them.
 - **Readers** subscribe to publishers and journalists, and are emailed when a new article they follow is approved.
 
-The app also has a REST API (Django REST Framework) with token authentication.
+The app also has a REST API (Django REST Framework) with token authentication. It stores its data in **MariaDB**.
 
-## Secrets and configuration
+There are two ways to run it. Each section below is complete on its own, so follow only one:
 
-No secrets are stored in this repository. The app reads its settings from environment variables, or from a `.env` file in the project root:
+- [Option A: Run with a virtual environment (venv) and MariaDB](#option-a-run-with-a-virtual-environment-venv-and-mariadb)
+- [Option B: Run with Docker](#option-b-run-with-docker) (MariaDB is included, nothing else to install)
 
-| Variable | Purpose | Example |
-| --- | --- | --- |
-| `DJANGO_SECRET_KEY` | **Required.** Django's secret key | a generated key (see below) |
-| `DJANGO_DEBUG` | `True` for development, `False` otherwise | `True` |
-| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames the app may be served on | `localhost,127.0.0.1` |
+No secrets are stored in this repository. Each option shows you how to create your own `.env` file with your own secret key and database password. Never commit `.env`; it is already listed in `.gitignore`.
 
-To create your own `.env`:
+---
+
+## Option A: Run with a virtual environment (venv) and MariaDB
+
+### Prerequisites
+
+- Python 3.12 or newer
+- Git
+- MariaDB 10.6 or newer (tested with 11.4), installed and running:
+  - **Windows / macOS:** download it from https://mariadb.org/download/ (on macOS you can also run `brew install mariadb` and then `brew services start mariadb`)
+  - **Ubuntu / WSL:**
+    ```bash
+    sudo apt update && sudo apt install mariadb-server
+    sudo service mariadb start
+    ```
+
+### 1. Clone the project
+
+```bash
+git clone https://github.com/Toni0287/news-app-capstone.git
+cd news-app-capstone
+```
+
+### 2. Create the MariaDB database and user
+
+Open the MariaDB shell as the root (admin) user:
+
+- **Ubuntu / WSL:**
+  ```bash
+  sudo mariadb
+  ```
+- **Windows / macOS** (enter the root password you chose when installing MariaDB):
+  ```bash
+  mariadb -u root -p
+  ```
+
+At the `MariaDB [(none)]>` prompt, paste the following. Replace `choose-a-password` with a password of your own and keep a note of it for step 5:
+
+```sql
+CREATE DATABASE newsapp_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'newsapp_user'@'localhost' IDENTIFIED BY 'choose-a-password';
+GRANT ALL PRIVILEGES ON newsapp_db.* TO 'newsapp_user'@'localhost';
+-- Lets the test runner create and remove its own test database
+GRANT ALL PRIVILEGES ON test_newsapp_db.* TO 'newsapp_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+### 3. Create and activate a virtual environment
+
+```bash
+python -m venv venv
+```
+
+Activate it:
+
+- **Linux / macOS / WSL:** `source venv/bin/activate`
+- **Windows (Command Prompt or PowerShell):** `venv\Scripts\activate`
+
+### 4. Install the dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Create your `.env` file and add your credentials
 
 1. Copy the template:
    ```bash
-   cp .env.example .env
+   cp .env.example .env          # Linux / macOS / WSL
+   copy .env.example .env        # Windows
    ```
-2. Generate a secret key (after installing the requirements below):
+2. Generate a secret key:
    ```bash
    python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
    ```
-3. Paste the key into `.env` as the value of `DJANGO_SECRET_KEY`.
+3. Open `.env` in a text editor and update these lines:
+   - `DJANGO_SECRET_KEY=` the key you just generated
+   - `DB_PASSWORD=` the MariaDB password you chose in step 2
 
-Never commit `.env`; it is already listed in `.gitignore`.
+   Leave `DB_NAME=newsapp_db`, `DB_USER=newsapp_user`, `DB_HOST=127.0.0.1` and `DB_PORT=3306` as they are, unless you used different values in step 2. `DB_ROOT_PASSWORD` is only used by Docker and can be ignored here.
 
-## Run with a virtual environment (venv)
+### 6. Create the database tables
 
-Requires Python 3.12 or newer.
+```bash
+python manage.py migrate
+```
 
-1. Clone the repository and go into it:
-   ```bash
-   git clone <repository-url>
-   cd news-capstone
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate        # Linux / macOS
-   venv\Scripts\activate           # Windows
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Create your `.env` file as described in [Secrets and configuration](#secrets-and-configuration).
-5. Create the database tables:
-   ```bash
-   python manage.py migrate
-   ```
-6. (Optional) Create an admin account for the Django admin at `/admin/`:
-   ```bash
-   python manage.py createsuperuser
-   ```
-7. Start the development server:
-   ```bash
-   python manage.py runserver
-   ```
-8. Open http://127.0.0.1:8000/ and register a reader, journalist or editor account.
+### 7. (Optional) Create an admin account
 
-To run the tests:
+For the Django admin at http://127.0.0.1:8000/admin/:
+
+```bash
+python manage.py createsuperuser
+```
+
+### 8. Start the server
+
+```bash
+python manage.py runserver
+```
+
+Open http://127.0.0.1:8000/ and register a reader, journalist or editor account.
+
+To run the tests (they use a separate `test_newsapp_db` database, created and removed automatically):
+
 ```bash
 python manage.py test
 ```
 
-## Run with Docker
+---
 
-1. Build the image from the project root:
-   ```bash
-   docker build -t news-app .
-   ```
-2. Run a container, passing in your own secret key:
-   ```bash
-   docker run -p 8000:8000 -e DJANGO_SECRET_KEY="your-generated-key" news-app
-   ```
-   If you have already created a `.env` file, you can pass that instead:
-   ```bash
-   docker run -p 8000:8000 --env-file .env news-app
-   ```
-3. Open http://localhost:8000/.
+## Option B: Run with Docker
 
-The container applies migrations when it starts and serves the app with Gunicorn. Static files are served by WhiteNoise, so `DJANGO_DEBUG` can stay `False`.
+Docker runs the app and its MariaDB database (MariaDB **11.4**, the official `mariadb:11.4` image) in two containers. You do not need Python or MariaDB installed.
 
-**Docker Playground or another host:** the app only accepts `localhost` and `127.0.0.1` by default. Allow the playground's hostname (or any host, for testing only) with `DJANGO_ALLOWED_HOSTS`:
+### Prerequisites
+
+- Git
+- **Docker Desktop installed and running** (Windows and macOS): https://www.docker.com/products/docker-desktop/
+  Start Docker Desktop and wait until it shows **Engine running** before you run any `docker` command. On Windows with WSL, also turn on **Settings → Resources → WSL integration** for your Linux distribution.
+- On Linux without Docker Desktop: Docker Engine with the Compose plugin (https://docs.docker.com/engine/install/), with the Docker service running.
+
+Check that Docker is ready:
+
 ```bash
-docker run -p 8000:8000 -e DJANGO_SECRET_KEY="your-generated-key" -e DJANGO_ALLOWED_HOSTS="*" news-app
+docker compose version
 ```
 
-To create an admin account inside a running container:
+### 1. Clone the project
+
 ```bash
-docker exec -it <container-id> python manage.py createsuperuser
+git clone https://github.com/Toni0287/news-app-capstone.git
+cd news-app-capstone
 ```
 
-The SQLite database lives inside the container, so data is lost when the container is removed.
+### 2. Create your `.env` file and add your credentials
+
+1. Copy the template:
+   ```bash
+   cp .env.example .env          # Linux / macOS / WSL
+   copy .env.example .env        # Windows
+   ```
+2. Generate a secret key (this uses Docker, so you do not need Python installed):
+   ```bash
+   docker run --rm python:3.12-slim python -c "import secrets; print(secrets.token_urlsafe(50))"
+   ```
+3. Open `.env` in a text editor and update these lines:
+   - `DJANGO_SECRET_KEY=` the key you just generated
+   - `DB_PASSWORD=` a password of your choice for the app's database user
+   - `DB_ROOT_PASSWORD=` a different password of your choice for MariaDB's root user
+
+   Docker creates the `newsapp_db` database and the `newsapp_user` user with these passwords the first time it starts. `DB_HOST` is set to the database container automatically, so leave it as it is.
+
+### 3. Build and start the containers
+
+```bash
+docker compose up --build
+```
+
+The first run downloads the images and takes a few minutes. The app waits until MariaDB is ready, creates the database tables, then starts. When you see `Listening at: http://0.0.0.0:8000`, open http://localhost:8000/.
+
+### 4. (Optional) Create an admin account
+
+In a second terminal, from the same folder:
+
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+### 5. Stop the app
+
+Press `Ctrl + C`, then:
+
+```bash
+docker compose down
+```
+
+Your data is kept in a Docker volume and is still there next time you run `docker compose up`. To delete the database as well, run `docker compose down -v`.
+
+**Docker Playground or another host:** the app only accepts `localhost` and `127.0.0.1` by default. Add the host's name to `DJANGO_ALLOWED_HOSTS` in `.env` (or use `*` for testing only), then run `docker compose up --build` again.
+
+---
+
+## Configuration reference
+
+All settings are read from `.env`:
+
+| Variable | Purpose | Default in `.env.example` |
+| --- | --- | --- |
+| `DJANGO_SECRET_KEY` | **Required.** Django's secret key | placeholder, replace it |
+| `DJANGO_DEBUG` | `True` for development, `False` otherwise | `True` |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames the app may be served on | `localhost,127.0.0.1` |
+| `DB_NAME` | MariaDB database name | `newsapp_db` |
+| `DB_USER` | MariaDB user | `newsapp_user` |
+| `DB_PASSWORD` | **Required.** Password for `DB_USER` | placeholder, replace it |
+| `DB_HOST` | MariaDB host (Docker sets this to `db`) | `127.0.0.1` |
+| `DB_PORT` | MariaDB port | `3306` |
+| `DB_ROOT_PASSWORD` | Docker only: MariaDB root password | placeholder, replace it |
 
 ## Documentation
 
 HTML documentation generated with Sphinx is in `docs/_build/html`. Open `docs/_build/html/index.html` in a browser.
 
-To rebuild it after changing docstrings:
+To rebuild it after changing docstrings (with the venv from Option A activated):
+
 ```bash
 pip install -r docs/requirements.txt
 cd docs
 make clean
 make html
 ```
+
 If `make` is not installed, use `sphinx-build -M clean . _build` and `sphinx-build -M html . _build` instead.
 
 ## REST API

@@ -70,32 +70,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'newsapp.wsgi.application'
 
-# ---------------------------------------------------------------
-# Database – MariaDB (production)
-# To use MariaDB, ensure MariaDB is running and run:
-#   CREATE DATABASE newsapp_db CHARACTER SET utf8mb4;
-#   CREATE USER 'newsapp_user'@'localhost' IDENTIFIED BY 'newsapp_password';
-#   GRANT ALL PRIVILEGES ON newsapp_db.* TO 'newsapp_user'@'localhost';
-# ---------------------------------------------------------------
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'newsapp_db',
-#         'USER': 'newsapp_user',
-#         'PASSWORD': 'newsapp_password',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#         'OPTIONS': {
-#             'charset': 'utf8mb4',
-#         },
-#     }
-# }
-
-# SQLite – development / testing
+# Database – MariaDB, through the PyMySQL driver (see newsapp/__init__.py).
+# Connection details come from .env (see .env.example and README.md).
+# With Docker Compose, DB_HOST is set to the "db" service automatically.
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME', 'newsapp_db'),
+        'USER': os.environ.get('DB_USER', 'newsapp_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
+        'TEST': {
+            'NAME': 'test_newsapp_db',
+        },
     }
 }
 

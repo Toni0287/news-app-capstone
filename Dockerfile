@@ -18,5 +18,6 @@ RUN DJANGO_SECRET_KEY=collectstatic-build-only python manage.py collectstatic --
 
 EXPOSE 8000
 
-# Apply migrations on start-up, then serve the app with Gunicorn
+# Apply migrations on start-up, then serve the app with Gunicorn.
+# Use docker-compose.yml to run this together with its MariaDB database.
 CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn newsapp.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
