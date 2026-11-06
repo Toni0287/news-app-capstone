@@ -65,9 +65,17 @@ EXIT;
 
 ### 3. Create and activate a virtual environment
 
-```bash
-python -m venv venv
-```
+Create it:
+
+- **Linux / macOS / WSL:**
+  ```bash
+  python3 -m venv venv
+  ```
+  On Ubuntu / WSL, if this fails with "ensurepip is not available", run `sudo apt install python3-venv` and try again.
+- **Windows (Command Prompt or PowerShell):**
+  ```bash
+  python -m venv venv
+  ```
 
 Activate it:
 
